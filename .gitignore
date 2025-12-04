@@ -1,0 +1,10 @@
+.idea/
+.vscode/
+/coverage/
+/logs
+/SQL
+/storage
+/logs/*
+!/logs/README.md
+.phpunit.result.cache
+.env

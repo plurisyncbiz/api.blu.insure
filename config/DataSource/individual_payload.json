@@ -1,0 +1,37 @@
+{
+  "id" : "0648ae94-9d20-11f0-9cb2-5128d6b71644",
+  "quote_date" : "2025-10-31",
+  "optin_date" : "2025-10-31",
+  "cover_starts" : "2025-11-01",
+  "cover_term" : 3,
+  "cover_amount" : 5000,
+  "premium_amount" : 450,
+  "package" : "10001",
+  "main_life" : {
+    "id" : "be9c34b2-9d1f-11f0-9cb2-5128d6b71644",
+    "name" : "Joe",
+    "surname" : "Bloggs",
+    "dob" : "30/11/1975",
+    "age" : 49,
+    "gender" : "Male",
+    "idno" : "7511301234567",
+    "cellno" : "0836477199",
+    "email" : "email@domain.com"
+  },
+  "spouse" : {},
+  "children" : [],
+  "parents" : [],
+  "beneficiaries" : [{
+    "id" : "be9c34b2-9d1f-11f0-9cb2-5128d6b71644",
+    "name" : "Mary",
+    "surname" : "Contrary",
+    "dob" : "11/08/1995",
+    "share" : 0.5
+  },{
+    "id" : "be9c34b2-9d1f-11f0-9cb2-5128d6b71644",
+    "name" : "John",
+    "surname" : "Carpenter",
+    "dob" : "11/08/2005",
+    "share" : 0.5
+  }]
+}

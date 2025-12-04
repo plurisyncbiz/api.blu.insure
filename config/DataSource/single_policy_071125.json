@@ -1,0 +1,60 @@
+[
+  {
+    "bundle_id": "d4d5d3b7-c81f-4270-a23d-18dbbfa27d8b",
+    "policy_start_date": "2025-11-07T15:12:04Z",
+    "cover`_term": 3,
+    "cover`_term_units": "Months",
+    "terms_and_conditions_accepted": true,
+    "popia_consent_given": true,
+    "bundle_multiplier": 1,
+    "bank_details": {
+      "bank_account_name": "PIERRE ROUX",
+      "bank_name": "FNB",
+      "bank_account_number": "50171111327",
+      "bank_branch": "Main",
+      "bank_account_type": "CURRENT"
+    },
+    "policyholder_employment": {
+      "employment_industry": "INFORMATION_TECHNOLOGY_COMMUNICATION_AND_TELECOMS",
+      "employment_status": "EMPLOYED"
+    },
+    "products": [
+      {
+        "product_short_code": "9001",
+        "external_product_life_id": "384e2421-bbc9-11f0-81a3-005056953048",
+        "name": "PIERRE",
+        "surname": "ROUX",
+        "date_of_birth": "1975-11-30",
+        "gender": "Male",
+        "mobile_number": "0836477199",
+        "email_address": "pierre@plurisync.biz",
+        "relationship_to_main": "MAIN",
+        "id_type": "IDENTITY_DOCUMENT",
+        "id_value": "7511305165085",
+        "id_id_expiry_date": "2030-01-01",
+        "id_country_of_issue": "ZAF",
+        "id_issued_by": "DHA",
+        "id_validated_by": "",
+        "id_validated_when": "",
+        "beneficiaries": [
+          {
+            "percentage_allocation": "100",
+            "name": "DOROTHY-ANN",
+            "surname": "ROUX",
+            "date_of_birth": "1972-11-16",
+            "gender": "female",
+            "mobile_number": "0836477199",
+            "email_address": "dot@plurisync.biz",
+            "id_type": "",
+            "id_value": "",
+            "id_id_expiry_date": "",
+            "id_country_of_issue": "",
+            "id_issued_by": "",
+            "id_validated_by": "",
+            "id_validated_when": ""
+          }
+        ]
+      }
+    ]
+  }
+]

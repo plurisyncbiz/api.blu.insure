@@ -1,0 +1,11 @@
+# Redirect to front controller
+CGIPassAuth On
+RewriteEngine On
+RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Needed for auth to work
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
