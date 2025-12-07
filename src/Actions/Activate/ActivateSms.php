@@ -28,7 +28,7 @@ class ActivateSms extends Action
 
         foreach ($sms as $row){
             $cellno = $row['cellno'];
-            $url = 'https://blu.insure/' . $row['uniqid'];
+            $url = $_ENV['SMS_POLICY_URL'] . $row['uniqid'];
 
             //build message, depends on how they came in
             if($type = 1){
