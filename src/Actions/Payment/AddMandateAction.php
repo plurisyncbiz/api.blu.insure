@@ -72,7 +72,7 @@ class AddMandateAction extends Action
         $payment_ref = $serial['serialno'];
 
         //product information
-        $product_price = $this->serials->fetchProductActivation($id);
+        //$product_price = $this->serials->fetchProductActivation($id);
 
         $price = '125.00';
 
