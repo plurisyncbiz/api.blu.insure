@@ -36,7 +36,7 @@ eof;
     public function findByUniqid($id){
         $sql = <<<eof
 SELECT *
-FROM blu_insure.serials a join blu_insure.products p on a.product_code = p.product_code
+FROM serials a join products p on a.product_code = p.product_code
 WHERE uniqid = ?
 eof;
         $query = $this->pdo->prepare($sql);
