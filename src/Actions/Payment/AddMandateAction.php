@@ -69,6 +69,7 @@ class AddMandateAction extends Action
         $debtor_bank = $payment['bank'];
         $payment_ref = $serial['serialno'];
 
+        return $serial;
         //product information
         $product_price = $this->serials->fetchProductActivation($id);
 
