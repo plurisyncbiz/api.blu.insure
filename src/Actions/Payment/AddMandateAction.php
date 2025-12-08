@@ -63,6 +63,8 @@ class AddMandateAction extends Action
         $policyHolder = $this->policyHolderRepository->getMainLifeById($id);
         $serial = $this->serials->findByActivation($id);
 
+        return $serial;
+
         //debtor information
         $debtor_name = $policyHolder['name'] . ' ' . $policyHolder['surname'];
         $debtor_identification = $policyHolder['idno'];
@@ -73,7 +75,6 @@ class AddMandateAction extends Action
 
         //product information
         $product_price = $this->serials->fetchProductActivation($id);
-        return $product_price;
 
         $price = $product_price['product_price'];
 
