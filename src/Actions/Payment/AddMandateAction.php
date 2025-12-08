@@ -36,7 +36,6 @@ class AddMandateAction extends Action
     {
         $id = $this->resolveArg('activationid');
         $data = $this->buildMandate($id);
-        return $this->respondWithData($data, 200, '');
 
         //submit to mercantile
         $result = json_decode($this->submitMercantileMandate($data), true);
