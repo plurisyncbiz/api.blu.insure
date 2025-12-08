@@ -103,7 +103,7 @@ class AddMandateAction extends Action
             "tracking_indicator" => "Y",
             "debtor_authentication_code" => "0227",
             "installment_occurence" => "OOFF",
-            "frequency" => "ADHO",
+            "frequency" => "YEAR",
             "mandate_initiation_date" => $currentDate->format('Y-m-d'),
             "first_collection_date" => "YEAR",
             "collection_amount" => $price,
