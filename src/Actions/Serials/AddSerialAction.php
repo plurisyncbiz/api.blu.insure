@@ -83,6 +83,7 @@ final class AddSerialAction extends Action
             throw new \InvalidArgumentException("Error: 'uniqid' is missing!");
         }
 
+        //get the unique id
         $uniqid = $rows['uniqid'];
         $url = $_ENV['SMS_ACTIVATE_URL'] . '/' . $uniqid;
         //construct the invite SMS
