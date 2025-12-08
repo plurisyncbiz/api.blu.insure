@@ -90,26 +90,27 @@ eof;
             throw new \Exception($e->getMessage());
         }
     }
-    public function fetchProductActivation($serialno){
-        $sql = <<<eof
-select p.product_price
-from serials s
-join products p on s.product_code = p.product_code
-where s.serialno = ?
-;
-eof;
-        $query = $this->pdo->prepare($sql);
-        $this->pdo->beginTransaction();
-        try {
-            $query->execute(array($serialno));
-            $this->pdo->commit();
-            return $query->fetch();
-        } catch(\PDOException $e) {
-            $this->pdo->rollBack();
-            // at this point you would want to implement some sort of error handling
-            // or potentially re-throw the exception to be handled at a higher layer
-            throw new \Exception($e->getMessage());
-        }
+    /**
+     * Fetches product activation details by serial number.
+     *
+     * @param string $serialno
+     * @return array|false Returns the row as an associative array or false if not found.
+     */
+    public function fetchProductActivation(string $serialno)
+    {
+        $sql = <<<SQL
+            SELECT p.product_price
+            FROM serials s
+            JOIN products p ON s.product_code = p.product_code
+            WHERE s.serialno = ?
+            LIMIT 1
+SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$serialno]);
+
+        // Return an associative array (column_name => value)
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     public function addSerials($data){
