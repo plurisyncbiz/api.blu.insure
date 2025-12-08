@@ -74,8 +74,8 @@ eof;
     public function findByActivation($id){
         $sql = <<<eof
 SELECT * 
-FROM blu_insure.serials s
-JOIN blu_insure.products p on s.product_code = p.product_code
+FROM serials s
+JOIN products p on s.product_code = p.product_code
 WHERE activationid = ?
 eof;
         $query = $this->pdo->prepare($sql);
