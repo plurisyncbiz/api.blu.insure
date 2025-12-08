@@ -218,6 +218,23 @@ eof;
             throw new \Exception($e->getMessage());
         }
     }
+    public function updateReplacement($activationid){
+        $sql = <<<eof
+UPDATE serials SET replacement = 1 WHERE activationid = ?
+eof;
+        $query = $this->pdo->prepare($sql);
+        $this->pdo->beginTransaction();
+        try {
+            $query->execute(array($activationid));
+            $this->pdo->commit();
+            return true;
+        } catch(\PDOException $e) {
+            $this->pdo->rollBack();
+            // at this point you would want to implement some sort of error handling
+            // or potentially re-throw the exception to be handled at a higher layer
+            throw new \Exception($e->getMessage());
+        }
+    }
 
     public function changeStatus($activationid, $status){
         $sql = <<<eof
