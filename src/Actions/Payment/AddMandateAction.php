@@ -70,11 +70,8 @@ class AddMandateAction extends Action
         $debtor_accno = $payment['acc_no'];
         $debtor_bank = $payment['bank'];
         $payment_ref = $serial['serialno'];
+        $product_price = $serial['product_price'];
 
-        //product information
-        //$product_price = $this->serials->fetchProductActivation($id);
-
-        $price = '125.00';
 
         // Current date
         $currentDate = new \DateTime();
@@ -104,8 +101,8 @@ class AddMandateAction extends Action
             "frequency" => "YEAR",
             "mandate_initiation_date" => $currentDate->format('Y-m-d'),
             "first_collection_date" => "YEAR",
-            "collection_amount" => $price,
-            "maximum_collection_amount" => $price,
+            "collection_amount" => $product_price,
+            "maximum_collection_amount" => '',
             "entry_class" => "0021",
             "debtor_account_name" => $debtor_name,
             "debtor_identification" => $debtor_identification,
