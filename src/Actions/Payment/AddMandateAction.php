@@ -74,7 +74,7 @@ class AddMandateAction extends Action
         //product information
         $product_price = $this->serials->fetchProductActivation($id);
 
-        $price = $product_price['product_price'];
+        $price = '125.00';
 
         // Current date
         $currentDate = new \DateTime();
