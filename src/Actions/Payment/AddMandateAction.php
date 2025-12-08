@@ -73,6 +73,7 @@ class AddMandateAction extends Action
 
         //product information
         $product_price = $this->serials->fetchProductActivation($id);
+        return $product_price;
 
         $price = $product_price['product_price'];
 
