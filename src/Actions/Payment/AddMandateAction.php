@@ -63,8 +63,6 @@ class AddMandateAction extends Action
         $policyHolder = $this->policyHolderRepository->getMainLifeById($id);
         $serial = $this->serials->findByActivation($id);
 
-        return $serial;
-
         //debtor information
         $debtor_name = $policyHolder['name'] . ' ' . $policyHolder['surname'];
         $debtor_identification = $policyHolder['idno'];
