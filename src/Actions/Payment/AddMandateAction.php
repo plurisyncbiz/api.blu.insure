@@ -102,7 +102,7 @@ class AddMandateAction extends Action
             "mandate_initiation_date" => $currentDate->format('Y-m-d'),
             "first_collection_date" => "YEAR",
             "collection_amount" => $product_price,
-            "maximum_collection_amount" => '',
+            "maximum_collection_amount" => $product_price,
             "entry_class" => "0021",
             "debtor_account_name" => $debtor_name,
             "debtor_identification" => $debtor_identification,
