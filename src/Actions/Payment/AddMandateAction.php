@@ -36,7 +36,8 @@ class AddMandateAction extends Action
     {
         $id = $this->resolveArg('activationid');
         $data = $this->buildMandate($id);
-        return $data;
+        return $this->respondWithData($data, 200, '');
+
         //submit to mercantile
         $result = json_decode($this->submitMercantileMandate($data), true);
         //update the activation status, must be accepted by remote bank.
