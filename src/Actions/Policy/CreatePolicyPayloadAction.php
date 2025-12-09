@@ -98,7 +98,7 @@ class CreatePolicyPayloadAction extends Action
                 "bundle_id" => $product['product_bundle_id'],
                 "policy_start_date" => $dt,
                 "cover_term" => $product_config['term'],
-                "cover_term_unit" => strtoupper($product_config['cover_term_unit']),
+                "cover_term_unit" => strtoupper($product_config['term_unit']),
                 "terms_and_conditions_accepted" => true,
                 "popia_consent_given" => true,
                 "bundle_multiplier" => 1,
