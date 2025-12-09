@@ -42,6 +42,7 @@ class GetPolicyInfoAction extends Action
         //get beneficiaries
         $beneficiaries = $this->policyHolderRepository->getBeneficiariesById($id);
         $beneficiaryCount = count($beneficiaries);
+        return $this->respondWithData($beneficiaryCount, 200, 'Beneficiaries Count');
         if($beneficiaryCount===2){
             $percentage_allocation = '50';
         } elseif($beneficiaryCount === 1) {
