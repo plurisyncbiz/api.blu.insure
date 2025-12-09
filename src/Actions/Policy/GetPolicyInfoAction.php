@@ -42,11 +42,11 @@ class GetPolicyInfoAction extends Action
         //get beneficiaries
         $beneficiaries = $this->policyHolderRepository->getBeneficiariesById($id);
         $beneficiaryCount = count($beneficiaries);
-        return $this->respondWithData($beneficiaryCount, 200, 'Beneficiaries Count');
-        if($beneficiaryCount===2){
-            $percentage_allocation = '50';
-        } elseif($beneficiaryCount === 1) {
-            $percentage_allocation = '100';
+        if ($beneficiaryCount > 0) {
+            // intval drops the decimals completely (e.g., 33.33 becomes 33)
+            $percentage_allocation = intval(100 / $beneficiaryCount);
+        } else {
+            $percentage_allocation = 0;
         }
 
         $beneficiaries_payload = array();
