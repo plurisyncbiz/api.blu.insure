@@ -108,14 +108,14 @@ class CreatePolicyPayloadAction extends Action
                     "bank_branch" => 'Main',
                     "account_type" => 'CURRENT'
                 ),
-                "policyholder_employment" => array(
-                    'status' => $policyHolderJson['employment_status'],
-                    'industry' => $policyHolderJson['employment_industry'],
-                ),
                 "is_replacement_policy" => ($serial['replacement'] == 1),
                 "previous_insurer" => '',
                 "will_cancel_existing_policy" => '',
                 "datetime_committed_to_cancel" => '',
+                "policyholder_employment" => array(
+                    'status' => $policyHolderJson['employment_status'],
+                    'industry' => $policyHolderJson['employment_industry'],
+                ),
                 "products" => array(
                     array(
                         "product_short_code" => "101",
