@@ -51,7 +51,6 @@ class CreatePolicyPayloadAction extends Action
         //get main life
         $policyHolder = $this->policyHolderRepository->getMainLifeById($id);
         $policyHolderJson = json_decode($policyHolder['entity_object'], true);
-
         //get beneficiaries
         $beneficiaries = $this->policyHolderRepository->getBeneficiariesById($id);
         $beneficiaryCount = count($beneficiaries);
@@ -113,6 +112,10 @@ class CreatePolicyPayloadAction extends Action
                     'status' => $policyHolderJson['employment_status'],
                     'industry' => $policyHolderJson['employment_industry'],
                 ),
+                "is_replacement_policy" => ($serial['replacement'] == 1),
+                "previous_insurer" => '',
+                "will_cancel_existing_policy" => '',
+                "datetime_committed_to_cancel" => '',
                 "products" => array(
                     array(
                         "product_short_code" => "101",
