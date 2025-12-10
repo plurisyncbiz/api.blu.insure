@@ -124,7 +124,7 @@ class CreatePolicyPayloadAction extends Action
                         "surname" => $policyHolder['surname'],
                         "date_of_birth" => $policyHolder['dob'],
                         "gender" => $policyHolder['gender'],
-                        "mobile_number" => '+27' . substr($policyHolder['cellno'], -9),
+                        "mobile_number" => !empty($policyHolder['cellno']) ? '+27' . substr($policyHolder['cellno'], -9) : '',
                         "email_address" => $policyHolder['email'],
                         "relationship_to_main" => $policyHolder['relationship'],
                         "id_type" => !empty($policyHolder['idno'])?$policyHolderJson['id_type']:'',
