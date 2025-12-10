@@ -51,7 +51,6 @@ class CreatePolicyPayloadAction extends Action
         //get main life
         $policyHolder = $this->policyHolderRepository->getMainLifeById($id);
         $policyHolderJson = json_decode($policyHolder['entity_object'], true);
-
         //get beneficiaries
         $beneficiaries = $this->policyHolderRepository->getBeneficiariesById($id);
         $beneficiaryCount = count($beneficiaries);
@@ -98,7 +97,7 @@ class CreatePolicyPayloadAction extends Action
                 "bundle_id" => $product['product_bundle_id'],
                 "policy_start_date" => $dt,
                 "cover_term" => $product_config['term'],
-                "cover_term_unit" => strtoupper($product_config['cover_term_unit']),
+                "cover_term_unit" => strtoupper($product_config['term_unit']),
                 "terms_and_conditions_accepted" => true,
                 "popia_consent_given" => true,
                 "bundle_multiplier" => 1,
@@ -109,6 +108,10 @@ class CreatePolicyPayloadAction extends Action
                     "bank_branch" => 'Main',
                     "account_type" => 'CURRENT'
                 ),
+                "is_replacement_policy" => ($serial['replacement'] == 1),
+                "previous_insurer" => '',
+                "will_cancel_existing_policy" => '',
+                "datetime_committed_to_cancel" => '',
                 "policyholder_employment" => array(
                     'status' => $policyHolderJson['employment_status'],
                     'industry' => $policyHolderJson['employment_industry'],
@@ -121,7 +124,7 @@ class CreatePolicyPayloadAction extends Action
                         "surname" => $policyHolder['surname'],
                         "date_of_birth" => $policyHolder['dob'],
                         "gender" => $policyHolder['gender'],
-                        "mobile_number" => '+27' . substr($policyHolder['cellno'], -9),
+                        "mobile_number" => !empty($policyHolder['cellno']) ? '+27' . substr($policyHolder['cellno'], -9) : '',
                         "email_address" => $policyHolder['email'],
                         "relationship_to_main" => $policyHolder['relationship'],
                         "id_type" => !empty($policyHolder['idno'])?$policyHolderJson['id_type']:'',

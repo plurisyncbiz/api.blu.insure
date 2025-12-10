@@ -36,6 +36,7 @@ class AddMandateAction extends Action
     {
         $id = $this->resolveArg('activationid');
         $data = $this->buildMandate($id);
+
         //submit to mercantile
         $result = json_decode($this->submitMercantileMandate($data), true);
         //update the activation status, must be accepted by remote bank.
@@ -68,11 +69,8 @@ class AddMandateAction extends Action
         $debtor_accno = $payment['acc_no'];
         $debtor_bank = $payment['bank'];
         $payment_ref = $serial['serialno'];
+        $product_price = $serial['product_price'];
 
-        //product information
-        $product_price = $this->serials->fetchProductActivation($id);
-
-        $price = $product_price['product_price'];
 
         // Current date
         $currentDate = new \DateTime();
@@ -99,11 +97,11 @@ class AddMandateAction extends Action
             "tracking_indicator" => "Y",
             "debtor_authentication_code" => "0227",
             "installment_occurence" => "OOFF",
-            "frequency" => "ADHO",
+            "frequency" => "YEAR",
             "mandate_initiation_date" => $currentDate->format('Y-m-d'),
             "first_collection_date" => "YEAR",
-            "collection_amount" => $price,
-            "maximum_collection_amount" => $price,
+            "collection_amount" => $product_price,
+            "maximum_collection_amount" => $product_price,
             "entry_class" => "0021",
             "debtor_account_name" => $debtor_name,
             "debtor_identification" => $debtor_identification,
