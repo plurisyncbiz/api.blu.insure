@@ -42,27 +42,40 @@ class AddMandateAction extends Action
         // 1. Build the Mandate Data
         $data = $this->buildMandate($id);
 
-        // -------------------------------------------------------------
-        // NEW: Save the mandate JSON to the payments table
-        // -------------------------------------------------------------
-        // Assuming your PaymentsRepository has an 'updateMandateJson' method
+        // 2. Save Mandate JSON to DB
         $this->payments->updateMandateJson($id, json_encode($data));
 
-        // 2. Submit to Mercantile
+        // 3. Submit to Mercantile
+        // Use true for associative array
         $result = json_decode($this->submitMercantileMandate($data), true);
 
-        // 3. Update the activation status
-        // NOTE: Hardcoded to use Delayed mandates, not realtime, therefore error is return.
+        // ---------------------------------------------------------------------
+        // FIXED LOGIC STARTS HERE
+        // ---------------------------------------------------------------------
 
-        // Check if 'bank_description' exists and matches success
+        // Safely extract 'bank_description'.
+        // If $result is null, or 'data' is missing, or 'bank_description' is missing,
+        // this will default to an empty string '' without throwing errors.
         $bankDesc = $result['data']['bank_description'] ?? '';
-        $isSuccess = ($bankDesc === 'Transaction Successful - Successful Debit or Mandate Accepted');
+
+        // Define the specific success message
+        $successMessage = 'Transaction Successful - Successful Debit or Mandate Accepted';
+
+        // Check if our extracted description matches the success message
+        $isSuccess = ($bankDesc === $successMessage);
 
         if (!$isSuccess) {
-            $status = $this->serials->changeStatusJson($id, 'MANDATE_ERROR', json_encode($result));
-            return $this->respondWithData($result, 409, $result['description'] ?? 'Mandate Failed');
+            // Log error
+            $this->serials->changeStatusJson($id, 'MANDATE_ERROR', json_encode($result));
+
+            // Get a safe error description
+            $errorDesc = $result['description'] ?? 'Unknown Mandate Error';
+
+            return $this->respondWithData($result, 409, $errorDesc);
         } else {
-            $status = $this->serials->changeStatusJson($id, 'MANDATE_SUBMITTED', json_encode($result));
+            // Log success
+            $this->serials->changeStatusJson($id, 'MANDATE_SUBMITTED', json_encode($result));
+
             return $this->respondWithData($result, 200, $bankDesc);
         }
     }
