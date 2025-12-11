@@ -42,9 +42,6 @@ class AddMandateAction extends Action
         // 1. Build the Mandate Data
         $data = $this->buildMandate($id);
 
-        // 2. Save Mandate JSON to DB
-        $this->payments->updateMandateJson($id, json_encode($data));
-
         // 3. Submit to Mercantile
         // Use true for associative array
         $result = json_decode($this->submitMercantileMandate($data), true);
@@ -142,6 +139,10 @@ class AddMandateAction extends Action
             "auto_rms_value" => "Y",
             "devenv" => "live"
         ];
+
+        // 2. Save Mandate JSON to DB
+        $this->payments->updateMandateJson($id, json_encode($array));
+
 
         return $array;
     }
