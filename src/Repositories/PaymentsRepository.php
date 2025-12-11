@@ -47,4 +47,21 @@ eof;
         $query->execute(['id' => $id]);
         return $query->fetch(PDO::FETCH_ASSOC);
     }
+
+    // In App\Repositories\PaymentsRepository
+
+    public function updateMandateJson(int $activationId, string $jsonData): bool
+    {
+        // Assuming your table name is 'payments' and the column is 'mandate_data'
+        // Also assuming you link payments via 'activation_id' or 'id'
+
+        // Note: Adjust 'mandate_data' to match your actual column name
+        $sql = "UPDATE payments SET mandate_data = :json WHERE activation_id = :id";
+
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            'json' => $jsonData,
+            'id' => $activationId
+        ]);
+    }
 }
