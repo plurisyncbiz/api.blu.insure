@@ -58,7 +58,7 @@ eof;
         // Note: Adjust 'mandate_data' to match your actual column name
         $sql = "UPDATE payments SET mandate_data = :json WHERE activation_id = :id";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             'json' => $jsonData,
             'id' => $activationId
