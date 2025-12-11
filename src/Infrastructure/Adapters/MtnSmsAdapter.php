@@ -26,11 +26,7 @@ class MtnSmsAdapter
         curl_setopt_array($ch, [
             CURLOPT_POST           => true,
             CURLOPT_RETURNTRANSFER => true,
-
-            // --- ENABLE HEADER CAPTURE ---
-            // This tells cURL to include the headers in the output string
-            CURLOPT_HEADER         => true,
-
+            CURLOPT_HEADER         => true, // Capture headers
             CURLOPT_USERPWD        => "{$this->apiUsername}:{$this->apiPassword}",
             CURLOPT_HTTPHEADER     => [
                 'Accept: application/json',
@@ -42,51 +38,58 @@ class MtnSmsAdapter
             CURLOPT_TIMEOUT        => 10
         ]);
 
-        // Execute request
         $rawOutput = curl_exec($ch);
 
-        // Get Info / Errors
-        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpCode   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $curlErrNo = curl_errno($ch);
-        $curlError = curl_error($ch);
+        $curlErrNo  = curl_errno($ch);
+        $curlError  = curl_error($ch);
 
         curl_close($ch);
 
         if ($curlErrNo !== 0) {
             return [
-                'success' => false,
-                'error'   => "cURL Error: $curlError",
+                'success'   => false,
+                'error'     => "cURL Error: $curlError",
                 'raw_debug' => null
             ];
         }
 
-        // --- SPLIT HEADERS AND BODY ---
-        // The $rawOutput contains both. We use $headerSize to cut them apart.
+        // Split Headers and Body
         $responseHeaders = substr($rawOutput, 0, $headerSize);
         $responseBody    = substr($rawOutput, $headerSize);
+        $responseData    = json_decode($responseBody, true);
 
-        // Parse Body
-        $responseData = json_decode($responseBody, true);
+        // --- FIXED LOGIC START ---
 
-        // --- LOGIC CHECKS ---
-        $resultCode = $responseData['Result'] ?? 0;
-        $isApiSuccess = ($resultCode == 1);
+        // 1. Normalize Keys: Check for 'result' OR 'Result'
+        // This handles case-sensitivity issues safely
+        $apiResult = $responseData['result'] ?? $responseData['Result'] ?? 0;
+        $apiError  = $responseData['error']  ?? $responseData['Error']  ?? null;
+
+        // 2. Check Success (Loose comparison matches "1" string or 1 integer)
+        $isApiSuccess = ($apiResult == 1);
+
+        // 3. Final Success (HTTP 200 + API Success)
         $finalSuccess = ($httpCode >= 200 && $httpCode < 300) && $isApiSuccess;
 
         $errorMessage = null;
         if (!$finalSuccess) {
-            $errorMessage = $httpCode >= 400
-                ? "HTTP Error $httpCode"
-                : "Provider Error: " . ($responseData['Error'] ?? 'Unknown');
+            if ($httpCode >= 400) {
+                $errorMessage = "HTTP Error $httpCode";
+            } else {
+                // Determine the specific error message
+                $errorMessage = "Provider Error: " . ($apiError ?? 'Unknown failure');
+            }
         }
+        // --- FIXED LOGIC END ---
 
         return [
             'success'     => $finalSuccess,
             'status_code' => $httpCode,
-            'body'        => $responseBody, // The clean JSON string
-            'parsed'      => $responseData, // The PHP Array
-            'headers'     => $responseHeaders, // The Raw Headers string
+            'body'        => $responseBody,
+            'parsed'      => $responseData,
+            'headers'     => $responseHeaders,
             'error'       => $errorMessage
         ];
     }
