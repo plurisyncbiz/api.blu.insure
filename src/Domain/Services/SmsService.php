@@ -1,8 +1,9 @@
 <?php
-
 namespace App\Domain\Services;
+
 use App\Infrastructure\Adapters\MtnSmsAdapter;
 use PDO;
+
 class SmsService
 {
     public function __construct(
@@ -12,29 +13,28 @@ class SmsService
 
     public function processSms(string $to, string $message, string $userRef): array
     {
-        // 1. INSERT: Log to DB as 'pending' before attempting to send
-        // This ensures you have a record even if the script crashes
+        // 1. Log Pending
         $stmt = $this->db->prepare("
-            INSERT INTO sms_logs (recipient, message, user_ref, status, insertdt) 
+            INSERT INTO sms_logs (recipient, message, user_ref, status, last_updated) 
             VALUES (:to, :msg, :ref, 'pending', NOW())
         ");
-
-        $stmt->execute([
-            'to'  => $to,
-            'msg' => $message,
-            'ref' => $userRef
-        ]);
-
+        $stmt->execute(['to' => $to, 'msg' => $message, 'ref' => $userRef]);
         $logId = $this->db->lastInsertId();
 
-        // 2. ACTION: Send via cURL Adapter
+        // 2. Send
         $result = $this->adapter->send($to, $message, $userRef);
 
-        // 3. UPDATE: Log the result
-        $status = $result['success'] ? 'sent' : 'failed';
+        // 3. Prepare Full Debug Log
+        // We pack Headers + Body into one JSON object for storage
+        $debugLog = json_encode([
+            'http_code' => $result['status_code'] ?? 0,
+            'response_body' => $result['parsed'] ?? $result['body'], // Store array if possible, else string
+            'response_headers' => explode("\r\n", $result['headers'] ?? ''), // Split headers into array for readability
+            'error_msg' => $result['error'] ?? null
+        ]);
 
-        // If failed, store the error; if success, store the API response body
-        $apiResponse = $result['success'] ? $result['body'] : ($result['error'] ?? $result['body']);
+        // 4. Update DB
+        $status = $result['success'] ? 'sent' : 'failed';
 
         $updateStmt = $this->db->prepare("
             UPDATE sms_logs 
@@ -44,14 +44,10 @@ class SmsService
 
         $updateStmt->execute([
             'status'   => $status,
-            'response' => $apiResponse,
+            'response' => $debugLog, // Saves the full debug info
             'id'       => $logId
         ]);
 
-        return [
-            'log_id' => $logId,
-            'status' => $status,
-            'data'   => $result
-        ];
+        return ['log_id' => $logId, 'status' => $status, 'data' => $result];
     }
 }
