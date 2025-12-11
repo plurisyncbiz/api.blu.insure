@@ -15,7 +15,7 @@ class SmsService
     {
         // 1. Log Pending
         $stmt = $this->db->prepare("
-            INSERT INTO sms_logs (recipient, message, user_ref, status, created_at) 
+            INSERT INTO sms_logs (recipient, message, user_ref, status, last_updated) 
             VALUES (:to, :msg, :ref, 'pending', NOW())
         ");
         $stmt->execute(['to' => $to, 'msg' => $message, 'ref' => $userRef]);
