@@ -56,7 +56,7 @@ eof;
         // Also assuming you link payments via 'activation_id' or 'id'
 
         // Note: Adjust 'mandate_data' to match your actual column name
-        $sql = "UPDATE payments SET mandate_data = :json WHERE activation_id = :id";
+        $sql = "UPDATE payments SET mandate_data = :json WHERE activationid = :id";
 
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
