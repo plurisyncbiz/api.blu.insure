@@ -50,7 +50,7 @@ class AddPaymentAction extends Action
 
             $this->payments->update($values);
             $message = 'Payment Updated';
-            $data = ['status' => 'updated', 'id' => $existingPayment['id'] ?? null]; // Keep existing ID
+            $data = ['status' => 'success', 'id' => $existingPayment['id'] ?? null]; // Keep existing ID
 
         } else {
             // --- CREATE NEW ---
