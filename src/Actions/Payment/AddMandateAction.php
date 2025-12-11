@@ -46,8 +46,6 @@ class AddMandateAction extends Action
         // Use true for associative array
         $result = json_decode($this->submitMercantileMandate($data), true);
 
-        return $this->respondWithData($data, 200, 'Mandate Payload Created');
-
         // ---------------------------------------------------------------------
         // FIXED LOGIC STARTS HERE
         // ---------------------------------------------------------------------
