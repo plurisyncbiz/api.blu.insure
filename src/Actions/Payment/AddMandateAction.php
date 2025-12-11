@@ -9,21 +9,23 @@ use App\Repositories\PolicyHolderRepository;
 use App\Repositories\ProductsRepository;
 use App\Repositories\SerialsRepository;
 use Monolog\Logger;
+
 #[\AllowDynamicProperties]
 class AddMandateAction extends Action
 {
     protected Logger $logger;
-
     protected SerialsRepository $serials;
-
     protected PolicyHolderRepository $policyHolderRepository;
-
     protected PaymentsRepository $payments;
-
     protected ProductsRepository $products;
 
-    public function __construct(Logger $logger, SerialsRepository $serials, ProductsRepository $products, PolicyHolderRepository $policyHolderRepository, PaymentsRepository $payments)
-    {
+    public function __construct(
+        Logger $logger,
+        SerialsRepository $serials,
+        ProductsRepository $products,
+        PolicyHolderRepository $policyHolderRepository,
+        PaymentsRepository $payments
+    ) {
         $this->logger = $logger;
         $this->serials = $serials;
         $this->products = $products;
@@ -32,24 +34,37 @@ class AddMandateAction extends Action
         $this->user = 'blmedia';
         $this->password = 'ASJAHIDEksj2993i93292192inkSNKlals929231wQ!';
     }
+
     protected function action(): Response
     {
         $id = $this->resolveArg('activationid');
+
+        // 1. Build the Mandate Data
         $data = $this->buildMandate($id);
 
-        //submit to mercantile
+        // -------------------------------------------------------------
+        // NEW: Save the mandate JSON to the payments table
+        // -------------------------------------------------------------
+        // Assuming your PaymentsRepository has an 'updateMandateJson' method
+        $this->payments->updateMandateJson($id, json_encode($data));
+
+        // 2. Submit to Mercantile
         $result = json_decode($this->submitMercantileMandate($data), true);
-        //update the activation status, must be accepted by remote bank.
-        //NOTE: Hardcoded to use Delayed mandates, not realtime, therefore error is return.
-        if(!isset($result['data']['bank_description']) && $result['data']['bank_description'] != 'Transaction Successful - Successful Debit or Mandate Accepted'){
+
+        // 3. Update the activation status
+        // NOTE: Hardcoded to use Delayed mandates, not realtime, therefore error is return.
+
+        // Check if 'bank_description' exists and matches success
+        $bankDesc = $result['data']['bank_description'] ?? '';
+        $isSuccess = ($bankDesc === 'Transaction Successful - Successful Debit or Mandate Accepted');
+
+        if (!$isSuccess) {
             $status = $this->serials->changeStatusJson($id, 'MANDATE_ERROR', json_encode($result));
-            return $this->respondWithData($result, 409, $result['description']);
+            return $this->respondWithData($result, 409, $result['description'] ?? 'Mandate Failed');
         } else {
             $status = $this->serials->changeStatusJson($id, 'MANDATE_SUBMITTED', json_encode($result));
-            return $this->respondWithData($result, 200, $result['data']['bank_description']);
-
+            return $this->respondWithData($result, 200, $bankDesc);
         }
-        //put in Action
     }
 
     /**
@@ -62,7 +77,7 @@ class AddMandateAction extends Action
         $policyHolder = $this->policyHolderRepository->getMainLifeById($id);
         $serial = $this->serials->findByActivation($id);
 
-        //debtor information
+        // Debtor information
         $debtor_name = $policyHolder['name'] . ' ' . $policyHolder['surname'];
         $debtor_identification = $policyHolder['idno'];
         $debtor_cellno = $policyHolder['cellno'];
@@ -71,25 +86,18 @@ class AddMandateAction extends Action
         $payment_ref = $serial['serialno'];
         $product_price = $serial['product_price'];
 
-
-        // Current date
+        // Date logic
         $currentDate = new \DateTime();
-
-// Copy current date to new variable
         $newDate = clone $currentDate;
-
-// Add 1 day
         $newDate->modify('+1 day');
 
-// Skip weekends if new date lands on Saturday or Sunday
+        // Skip weekends
         $dayOfWeek = $newDate->format('N'); // 1 = Monday, 7 = Sunday
         if ($dayOfWeek == 6) { // Saturday
             $newDate->modify('+2 days');
         } elseif ($dayOfWeek == 7) { // Sunday
             $newDate->modify('+1 day');
         }
-
-        //check if activation is valid
 
         $array = [
             "user_reference" => $payment_ref,
@@ -125,8 +133,9 @@ class AddMandateAction extends Action
         return $array;
     }
 
+    // ... (rest of your helper functions getUniversalBranchCode, submitMercantileMandate, GetToken remain the same) ...
+
     private function getUniversalBranchCode($bankName) {
-        // Mapping of bank names to universal branch codes
         $bankUBCs = [
             'ABSA' => '632005',
             'CAPITEC' => '470010',
@@ -137,10 +146,8 @@ class AddMandateAction extends Action
             'AFRICANBANK' => '483845',
             'TYMEBANK' => '978765',
             'FINBOND' => '589000',
-            // Add more banks as needed
         ];
 
-        // Normalize the input for case-insensitive matching
         $bankName = strtoupper(trim($bankName));
 
         foreach ($bankUBCs as $name => $ubc) {
@@ -148,13 +155,10 @@ class AddMandateAction extends Action
                 return $ubc;
             }
         }
-
-        // Return null if bank not found
         return null;
     }
 
     private function submitMercantileMandate($data){
-// Encode JSON safely
         $json = json_encode($data, JSON_THROW_ON_ERROR);
         $bearerToken = $this->getToken()->token;
         $curl = curl_init();
@@ -176,7 +180,6 @@ class AddMandateAction extends Action
 
         $response = curl_exec($curl);
 
-        // cURL error handling
         if ($response === false) {
             $error = curl_error($curl);
             curl_close($curl);
@@ -186,7 +189,6 @@ class AddMandateAction extends Action
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
 
-        // Optional: handle non-200 responses
         if ($status < 200 || $status >= 300) {
             throw new \RuntimeException("API responded with HTTP $status: $response");
         }
@@ -202,10 +204,7 @@ class AddMandateAction extends Action
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         $return = curl_exec($ch);
         curl_close($ch);
-        //decode result
         $result = json_decode($return);
-        //store the session
         return $result;
     }
-
 }
