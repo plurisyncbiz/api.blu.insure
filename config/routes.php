@@ -22,6 +22,7 @@ return function (App $app) {
         $group->get('/{serialno}', \App\Actions\Serials\ViewSerialAction::class);
         $group->post('/', \App\Actions\Serials\AddSerialAction::class);
         $group->post('/replacement/{activationid}', \App\Actions\Serials\AddSerialReplacementAction::class);
+        $group->post('/confirmation/{activationid}', \App\Actions\Serials\AddSerialConfirmAction::class);
     });
     $app->group('/activate', function (Group $group){
         $group->post('/', \App\Actions\Activate\ActivateAction::class);
