@@ -235,7 +235,26 @@ eof;
             throw new \Exception($e->getMessage());
         }
     }
+    /**
+     * Confirms the serial and stamps the time
+     * * @param int $activationId
+     * @return bool
+     */
+    public function markAsConfirmed(int $activationId): bool
+    {
+        // Assuming your table is named 'serials'
+        // We set confirmed to 1 and use the database's current time for the timestamp
+        $sql = "UPDATE serials 
+                SET confirmed = 1, 
+                    confirmed_timestamp = NOW() 
+                WHERE activationid = :id";
 
+        $stmt = $this->pdo->prepare($sql);
+
+        return $stmt->execute([
+            'id' => $activationId
+        ]);
+    }
     public function changeStatus($activationid, $status){
         $sql = <<<eof
 UPDATE serials SET current_status = ? WHERE activationid = ?
