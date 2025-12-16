@@ -87,7 +87,7 @@ final class AddSerialAction extends Action
         $uniqid = $rows['uniqid'];
         $url = $_ENV['SMS_ACTIVATE_URL'] . '/' . $uniqid;
         //construct the invite SMS
-        $message = "Sanlam Prepaid Funeral Cover. Your cover is not active yet. Click $url to get $cover cover for R$price ($term months). Data-free. 2 minutes.  (FSP11230)";
+        $message = "Your $cover Sanlam Funeral Cover is NOT active yet. Activate here: $url. Pay R$price for $term months of cover. SDM Life Licensed Insurer & Auth FSP11230.";
         //send the sms
         $this->sms->processSms($body['cellno'], $message, $uniqid);
         //put in Action
