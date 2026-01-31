@@ -27,28 +27,46 @@ class ActivateAction extends Action
 
     protected function action(): Response
     {
-        //get the unique id.
+        // 1. Get the unique id.
         $body = $this->resolveParsedBody();
+        $serialno = $body['serialno'];
 
-        //check if already activated
-        $activation = $this->activations->fetchBySerial($body['serialno']);
+        // 2. VALIDATION: Check if serial exists in the DB first
+        // We assume you add the 'fetch' method to your serials class (code below)
+        $serialData = $this->serials->findBySerial($serialno);
+
+        if (!$serialData || count($serialData) === 0) {
+            // Stop here if the serial doesn't exist in your inventory
+            return $this->respondWithData(array(), 404, 'Serial number not found');
+        }
+
+        // 3. Capture the Product Name for the response
+        // Assuming the column in your DB is named 'product_name'
+        $productName = $serialData[0]['product_name'] ?? 'Prepaid Product';
+
+        // 4. Check if already activated
+        $activation = $this->activations->fetchBySerial($serialno);
         if(count($activation) >= 1){
-            return $this->respondWithData(array(), 404, 'Activation exists');
+            // Changed to 409 (Conflict) as it's more accurate than 404, but 404 works too
+            return $this->respondWithData(array(), 409, 'Serial is already activated');
         }
 
         $data = array(
-            $body['serialno'],
+            $serialno,
             $body['ip_address'],
             $body['user_agent']
         );
 
-        //activate the
+        // 5. Create the activation record
         $activationid = $this->activations->create($data);
 
-        $data = $this->serials->updateActivation($body['serialno'], $activationid);
+        // 6. Update the serial status
+        $updateResult = $this->serials->updateActivation($serialno, $activationid);
 
-        //put in Action
-        return $this->respondWithData(array($data), 200, 'Activation ID updated');
+        // 7. BUILD RESPONSE
+        // We merge the update result with the product name we found earlier
+        $responsePayload = array_merge($updateResult, ['product_name' => $productName]);
 
+        return $this->respondWithData(array($responsePayload), 200, 'Activation successful');
     }
 }
