@@ -9,13 +9,12 @@ use Cake\Validation\Validator;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Domain\Services\SmsService;
+
 #[\AllowDynamicProperties]
 final class AddSerialAction extends Action
 {
     protected Logger $logger;
-
     protected SerialsRepository $serials;
-
     protected SmsService $sms;
     protected ProductsRepository $productsRepository;
 
@@ -26,22 +25,20 @@ final class AddSerialAction extends Action
         $this->sms = $sms;
         $this->productsRepository = $productsRepository;
     }
+
     protected function action(): Response
     {
-        //find user
         $body = $this->resolveParsedBody();
 
-
+        // 1. Validation
         $validator = new Validator();
 
-        //check cell number for matted correctly
         $validator
             ->requirePresence('cellno', true, 'This field is required')
             ->notEmptyString('cellno', 'cellno is required')
-            ->maxLength('cellno', 10, 'cellno is to long')
-            ->minLength('cellno', 10, 'cellno is to short')
-            ->regex('cellno', '/^0(6[0123456789][0-9]{7}|7[1234689][0-9]{7}|8[12345][0-9]{7})/', 'This must be a valid RSA Cellphone Number in local format')
-        ;
+            ->maxLength('cellno', 10, 'cellno is too long')
+            ->minLength('cellno', 10, 'cellno is too short')
+            ->regex('cellno', '/^0(6[0123456789][0-9]{7}|7[1234689][0-9]{7}|8[12345][0-9]{7})/', 'This must be a valid RSA Cellphone Number in local format');
 
         $validator
             ->requirePresence('channel', true, 'This field is required')
@@ -50,14 +47,14 @@ final class AddSerialAction extends Action
 
         $validator
             ->requirePresence('sales_agent', true, 'This field is required')
-            ->notEmptyString('channel', 'This field is required');
+            ->notEmptyString('sales_agent', 'This field is required');
 
         $errors = $validator->validate($body);
         if($errors){
             return $this->respondWithData(array('errors' => $errors), 400, 'There were validation errors');
         }
 
-        //build payload
+        // 2. Prepare Data for Repository
         $data = array(
             $body['product_code'],
             $body['cellno'],
@@ -65,51 +62,53 @@ final class AddSerialAction extends Action
             $body['sales_agent'],
         );
 
-        //insert records
+        // 3. Insert Record
+        // Returns ['id' => 1, 'uniqid' => 'abc', 'serialno' => '110001']
         $rows = $this->serials->addSerial($data);
+
+        // 4. Fetch Product Details
         $product = $this->productsRepository->fetchById($body['product_code']);
         $config = json_decode($product['product_configuration'], true);
 
-        //get values
-        $cover = $config['cover'];
+        // Format Values
+        $cover = $this->shortNumber($config['cover']);
         $price = $product['product_price'];
         $term = $config['term'];
 
-        //format values
-        $cover = $this->shortNumber($cover);
-
-        // Check if the key exists and is NOT null
+        // Safety Checks
         if (!isset($rows['uniqid'])) {
-            throw new \InvalidArgumentException("Error: 'uniqid' is missing!");
+            throw new \InvalidArgumentException("Error: 'uniqid' is missing from repository return!");
+        }
+        if (!isset($rows['serialno'])) {
+            throw new \InvalidArgumentException("Error: 'serialno' is missing from repository return!");
         }
 
-        //get the unique id
+        // 5. Send SMS
         $uniqid = $rows['uniqid'];
         $url = $_ENV['SMS_ACTIVATE_URL'] . '/' . $uniqid;
         $ussd = $_ENV['SMS_POLICY_USSD'];
-        //construct the invite SMS
+
         $message = "Your $cover Sanlam Funeral Cover is NOT active yet. Activate here: USSD - $ussd - or ONLINE - $url. Pay R$price for $term months of cover. SDM Life Licensed Insurer & Auth FSP11230.";
-        //send the sms
+
         $this->sms->processSms($body['cellno'], $message, $uniqid);
-        //put in Action
-        return $this->respondWithData($config, 200, 'Serial added');
+
+        // 6. Build Final Response
+        // We add the created serial number to the config array
+        $responseData = array_merge($config, [
+            'serialno' => $rows['serialno'], // This is what you needed
+            'uniqid'   => $uniqid
+        ]);
+
+        return $this->respondWithData($responseData, 200, 'Serial added');
     }
 
     private function shortNumber($num, $precision = 1) {
         if ($num < 1000) {
             return $num;
         }
-
-        // Define the suffixes
         $suffixes = ['', 'k', 'M', 'B', 'T'];
-
-        // Calculate which suffix to use
         $suffixIndex = floor(log($num, 1000));
-
-        // Divide the number by the power of 1000
         $number = $num / pow(1000, $suffixIndex);
-
-        // Round it and add the suffix
         return round($number, $precision) . $suffixes[$suffixIndex];
     }
 }
