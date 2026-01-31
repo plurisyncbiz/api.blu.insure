@@ -29,6 +29,7 @@ class ActivateSms extends Action
         foreach ($sms as $row){
             $cellno = $row['cellno'];
             $url = $_ENV['SMS_POLICY_URL'] . $row['uniqid'];
+            $ussd = $_ENV['SMS_POLICY_USSD'];
 
             //build message, depends on how they came in
             if($type = 1){
@@ -39,8 +40,10 @@ Family Package
 (Main , Spouse & upto 5 kids)
 3 Month Term
 R20k cover
-Complete Policy Info @ $url
-NoDataCosts
+Complete Policy Info:
+USSD @ $ussd
+Online @ $url
+FREE
 eof;
             } elseif ($type == 2){
                 $message = <<<eof
@@ -50,8 +53,10 @@ Family Package
 (Main , Spouse & upto 5 kids)
 3 Month Term
 R20k cover
-Complete Policy Info @ $url
-NoDataCosts
+Complete Policy Info:
+USSD @ $ussd
+Online @ $url
+FREE
 eof;
             } else {
 
