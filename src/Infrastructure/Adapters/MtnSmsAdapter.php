@@ -17,7 +17,7 @@ class MtnSmsAdapter
         $payload = [
             "to"      => $formattedNumber,
             "message" => $message,
-            "ems"     => "0",
+            "ems"     => "1",
             "userref" => $userRef
         ];
 
