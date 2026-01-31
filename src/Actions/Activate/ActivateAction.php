@@ -27,45 +27,61 @@ class ActivateAction extends Action
 
     protected function action(): Response
     {
-        // 1. Get the Serial Number
         $body = $this->resolveParsedBody();
         $serialno = $body['serialno'] ?? null;
+
+        // 1. MAKE CELL NUMBER OPTIONAL (Backward Compatibility)
+        // If the remote side sends it, we check it. If not, we skip the check.
+        $incomingCell = $body['cellno'] ?? null;
 
         if(!$serialno){
             return $this->respondWithData([], 400, 'Serial number required');
         }
 
-        // 2. Fetch the row from the DB
+        // 2. FETCH SERIAL DATA
         $serialData = $this->serials->findBySerial($serialno);
 
-        // Check if Serial exists
         if (!$serialData || count($serialData) === 0) {
             return $this->respondWithData([], 404, 'Serial number not found');
         }
 
         $row = $serialData[0];
 
-        // 3. DECODE CONFIGURATION (To get the Cover Amount)
-        // The DB returns: "{""term"": 3, ""cover"": 20000...}"
-        $config = json_decode($row['product_configuration'] ?? '{}', true);
-        $coverAmount = $config['cover'] ?? '0.00'; // Default to 0.00 if missing
+        // 3. SECURITY CHECK (Conditional)
+        $storedCell = trim($row['cellno'] ?? '');
 
-        // 4. PREPARE PRODUCT DETAILS
-        $productDetails = [
-            'product_name'        => $row['product_name'],        // "Sanlam Prepaid Funeral Cover"
-            'product_description' => $row['product_description'], // "3 Months"
-            'product_code'        => $row['product_code'],        // "10001"
-            'price'               => $row['product_price'],       // "125.00"
-            'cover_amount'        => $coverAmount                 // "20000" (Extracted from JSON)
-        ];
-
-        // 5. Check if already activated
-        // We check the 'activationid' field from the fetch result directly
-        if(!empty($row['activationid']) || $row['current_status'] === 'ACTIVATED'){
-            return $this->respondWithData([$productDetails], 409, 'Serial is already activated');
+        // We only perform the check if BOTH the DB has a locked number AND the request provided a number.
+        if (!empty($storedCell) && !empty($incomingCell)) {
+            if ($storedCell !== trim($incomingCell)) {
+                // FAIL: The voucher belongs to a different number
+                return $this->respondWithData([], 403, 'This voucher belongs to a different mobile number.');
+            }
         }
 
-        // 6. Proceed with Activation
+        // 4. PREPARE PRODUCT DETAILS
+        $config = json_decode($row['product_configuration'] ?? '{}', true);
+        $coverAmount = $config['cover'] ?? '0.00';
+
+        $productDetails = [
+            'product_name'        => $row['product_name'],
+            'product_description' => $row['product_description'],
+            'product_code'        => $row['product_code'],
+            'price'               => $row['product_price'],
+            'cover_amount'        => $coverAmount,
+            'serial_cellno'       => $storedCell
+        ];
+
+        // 5. CHECK IF ALREADY ACTIVATED
+        // We return 409 but include the product details so the UI can proceed to "Policy Details"
+        if(!empty($row['activationid']) || $row['current_status'] === 'ACTIVATED'){
+            $payload = array_merge(
+                ['activation_id' => $row['activationid']],
+                $productDetails
+            );
+            return $this->respondWithData([$payload], 409, 'Serial is already activated. Proceed to policy details.');
+        }
+
+        // 6. ACTIVATE
         $data = array(
             $serialno,
             $body['ip_address'] ?? '127.0.0.1',
@@ -75,12 +91,12 @@ class ActivateAction extends Action
         $activationid = $this->activations->create($data);
         $this->serials->updateActivation($serialno, $activationid);
 
-        // 7. RETURN COMBINED RESPONSE
-        $responsePayload = array_merge(
+        // 7. SUCCESS RESPONSE
+        $payload = array_merge(
             ['activation_id' => $activationid],
             $productDetails
         );
 
-        return $this->respondWithData([$responsePayload], 200, 'Activation successful');
+        return $this->respondWithData([$payload], 200, 'Activation successful');
     }
 }
