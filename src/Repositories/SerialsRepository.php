@@ -54,9 +54,11 @@ eof;
     }
     public function findBySerial($id){
         $sql = <<<eof
-SELECT * 
-FROM serials 
+SELECT *
+FROM serials s
+join products p on s.product_code = p.product_code
 WHERE serialno = ?
+;
 eof;
         $query = $this->pdo->prepare($sql);
         $this->pdo->beginTransaction();

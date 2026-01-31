@@ -27,46 +27,61 @@ class ActivateAction extends Action
 
     protected function action(): Response
     {
-        // 1. Get the unique id.
+        // 1. Get the Serial Number from the Body
         $body = $this->resolveParsedBody();
-        $serialno = $body['serialno'];
+        $serialno = $body['serialno'] ?? null;
 
-        // 2. VALIDATION: Check if serial exists in the DB first
-        // We assume you add the 'fetch' method to your serials class (code below)
-        $serialData = $this->serials->findBySerial($serialno);
-
-        if (!$serialData || count($serialData) === 0) {
-            // Stop here if the serial doesn't exist in your inventory
-            return $this->respondWithData(array(), 404, 'Serial number not found');
+        if(!$serialno){
+            return $this->respondWithData([], 400, 'Serial number required');
         }
 
-        // 3. Capture the Product Name for the response
-        // Assuming the column in your DB is named 'product_name'
-        $productName = $serialData[0]['product_name'] ?? 'Prepaid Product';
+        // 2. VALIDATION: Fetch the row from the DB
+        // This returns the array structure you showed in your prompt
+        $serialData = $this->serials->findBySerial($serialno);
+
+        // Check if the array is empty (Serial not found)
+        if (!$serialData || count($serialData) === 0) {
+            return $this->respondWithData([], 404, 'Serial number not found');
+        }
+
+        // 3. EXTRACT PRODUCT DETAILS
+        // The fetchAll() returns an array of rows, so we target the first row [0]
+        $row = $serialData[0];
+
+        // We extract the specific columns you showed in your result
+        $productDetails = [
+            'product_name'        => $row['product_name'],        // "Sanlam Prepaid Funeral Cover"
+            'product_description' => $row['product_description'], // "3 Months"
+            'product_code'        => $row['product_code'],        // "10001"
+            'price'               => $row['product_price']        // "125.00"
+        ];
 
         // 4. Check if already activated
-        $activation = $this->activations->fetchBySerial($serialno);
-        if(count($activation) >= 1){
-            // Changed to 409 (Conflict) as it's more accurate than 404, but 404 works too
-            return $this->respondWithData(array(), 409, 'Serial is already activated');
+        // (We use the 'activationid' column from your result to save a DB call)
+        if(!empty($row['activationid']) || $row['current_status'] === 'ACTIVATED'){
+            // We still return the product details so the USSD can say "You ALREADY have [Product Name]"
+            return $this->respondWithData([$productDetails], 409, 'Serial is already activated');
         }
 
         $data = array(
             $serialno,
-            $body['ip_address'],
-            $body['user_agent']
+            $body['ip_address'] ?? '127.0.0.1',
+            $body['user_agent'] ?? 'API'
         );
 
         // 5. Create the activation record
         $activationid = $this->activations->create($data);
 
         // 6. Update the serial status
-        $updateResult = $this->serials->updateActivation($serialno, $activationid);
+        $this->serials->updateActivation($serialno, $activationid);
 
-        // 7. BUILD RESPONSE
-        // We merge the update result with the product name we found earlier
-        $responsePayload = array_merge($updateResult, ['product_name' => $productName]);
+        // 7. MERGE AND RETURN
+        // We combine the activation ID with the product details we extracted earlier
+        $responsePayload = array_merge(
+            ['activation_id' => $activationid],
+            $productDetails
+        );
 
-        return $this->respondWithData(array($responsePayload), 200, 'Activation successful');
+        return $this->respondWithData([$responsePayload], 200, 'Activation successful');
     }
 }
