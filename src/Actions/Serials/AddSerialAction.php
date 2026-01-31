@@ -85,10 +85,11 @@ final class AddSerialAction extends Action
 
         // 5. Send SMS
         $uniqid = $rows['uniqid'];
+        $serialno = $rows['serialno'];
         $url = $_ENV['SMS_ACTIVATE_URL'] . '/' . $uniqid;
         $ussd = $_ENV['SMS_POLICY_USSD'];
 
-        $message = "Your $cover Sanlam Funeral Cover is NOT active yet. Activate here: USSD - $ussd - or ONLINE - $url. Pay R$price for $term months of cover. SDM Life Licensed Insurer & Auth FSP11230.";
+        $message = "Thanks for your interest in $cover Sanlam Funeral Cover. Your serial number is: $serialno. Activate your policy via USSD dial $ussd --or-- ONLINE click $url. Pay R$price for $term months of cover. SDM Life Licensed Insurer & Auth FSP11230.";
 
         $this->sms->processSms($body['cellno'], $message, $uniqid);
 
