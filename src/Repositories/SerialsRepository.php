@@ -299,4 +299,29 @@ eof;
         }
 
     }
+
+    /**
+     * Updates the status based on the UniqID (3-char code)
+     * Used by the Payment Page status updates
+     */
+    public function changeStatusByUniqid($uniqid, $status){
+        $sql = <<<eof
+UPDATE serials 
+SET current_status = ? 
+WHERE uniqid = ?
+eof;
+        $query = $this->pdo->prepare($sql);
+        $this->pdo->beginTransaction();
+        try {
+            $query->execute(array($status, $uniqid));
+            $this->pdo->commit();
+            return array(
+                'uniqid' => $uniqid,
+                'status' => $status
+            );
+        }   catch (\PDOException $e) {
+            $this->pdo->rollBack();
+            throw new \Exception($e->getMessage());
+        }
+    }
 }

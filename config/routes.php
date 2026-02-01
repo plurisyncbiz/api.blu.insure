@@ -19,6 +19,7 @@ return function (App $app) {
         $group->post('/file/{filename}', \App\Actions\Serials\AddSerialsFromFile::class);
     });
     $app->group('/serial', function (Group $group){
+        $group->post('/status', \App\Actions\Serials\UpdateSerialStatusAction::class);
         $group->get('/{serialno}', \App\Actions\Serials\ViewSerialAction::class);
         $group->post('/', \App\Actions\Serials\AddSerialAction::class);
         $group->post('/replacement/{activationid}', \App\Actions\Serials\AddSerialReplacementAction::class);
