@@ -73,7 +73,7 @@ class ActivateAction extends Action
 
         // 5. CHECK IF ALREADY ACTIVATED
         // We return 409 but include the product details so the UI can proceed to "Policy Details"
-        if(!empty($row['activationid'])){
+        if(!empty($row['activationid']) || $row['current_status'] === 'ACTIVATED'){
             $payload = array_merge(
                 ['activation_id' => $row['activationid']],
                 ['serial_current_status' => $row['current_status']],
