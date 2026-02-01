@@ -77,6 +77,7 @@ class ActivateAction extends Action
             $payload = array_merge(
                 ['activation_id' => $row['activationid']],
                 ['serial_current_status' => $row['current_status']],
+                ['uniqid' => $row['uniqid']],
                 $productDetails
             );
             return $this->respondWithData([$payload], 409, 'Serial is already activated. Proceed to policy details.');
