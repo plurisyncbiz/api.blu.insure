@@ -71,14 +71,12 @@ class ActivateAction extends Action
             'serial_cellno'       => $storedCell
         ];
 
-        $status = $row['current_status'] ?? 'UNKNOWN';
-
         // 5. CHECK IF ALREADY ACTIVATED
         // We return 409 but include the product details so the UI can proceed to "Policy Details"
-        if(!empty($row['activationid']) || $row['current_status'] === 'ACTIVATED'){
+        if(!empty($row['activationid'])){
             $payload = array_merge(
                 ['activation_id' => $row['activationid']],
-                ['serial_current_status' => $status],
+                ['serial_current_status' => $row['current_status']],
                 $productDetails
             );
             return $this->respondWithData([$payload], 409, 'Serial is already activated. Proceed to policy details.');
